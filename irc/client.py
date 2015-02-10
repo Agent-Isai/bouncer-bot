@@ -16,6 +16,7 @@ class IRCClient:
 
     def __init__(self, sid):
         self.server = None    # IRC server
+        self.password = None 
         self.port = 6667
         self.nickname = "Groo"    # Nick
         self.ident = self.nickname
@@ -58,8 +59,8 @@ class IRCClient:
         self.addhandler("kick", self._on_kick)
         self.addhandler("nick", self._on_nick)
 
-    def configure(self, server="", port=6667, nick="-", ident="-",
-                gecos="-", ssl=False, msgdelay=0.5, reconnects=10):
+    def configure(self, server="", port=6667, nick="nothing", ident="nothing",
+                gecos="-", ssl=False, password=None msgdelay=0.5, reconnects=10):
         self.server = server
         self.port = port
         self.nickname = nick
@@ -97,6 +98,8 @@ class IRCClient:
         time.sleep(2) # v3 ftw
         self.user(self.ident, self.gecos)
         self.nick(self.nickname)
+        if self.password is not None:
+            self.pass_(self.password)
 
     def _cookie_monster(self):
         while self.connected:
@@ -326,6 +329,9 @@ class IRCClient:
 
     def quit(self, reason):
         self.send("QUIT :{0}".format(reason), True)
+    
+    def pass_(self, password):
+        self.send("PASS :{0}".format(password), True)
 
     def pong(self, param):
         self.send("PONG :{0}".format(param))
