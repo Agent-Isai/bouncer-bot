@@ -1,0 +1,18 @@
+{
+    "servers": {
+        "freenode": {
+            "server": "127.0.0.1",
+            "port": 1337,
+            "password": User/freenode:password",
+            "request-channel": "#hirabnc",
+            "admin-channel": "#hirabnc-ops"
+        },
+        "hira":{
+            "server": "127.0.0.1",
+            "port": 1337,
+            "password": User/hira:password",
+            "request-channel": "#bouncer",
+            "admin-channel": "#bouncer-ops"
+        }
+    }
+}
