@@ -21,6 +21,7 @@ class IRCClient:
         self.nickname = "Groo"    # Nick
         self.ident = self.nickname
         self.gecos = "-"
+        self.sid = sid
         self.ssl = False
         self.msgdelay = 0.5 
         self.reconnects = 10
@@ -50,7 +51,7 @@ class IRCClient:
         self.addhandler("topicinfo", self._on_topicinfo)
         self.addhandler("whospcrpl", self._on_whox)
         self.addhandler("whoreply", self._on_who)
-        self.addhandler("whoisloggedin", self._on_whoisaccount)
+        #self.addhandler("whoisloggedin", self._on_whoisaccount)
         self.addhandler("mode", self._on_mode)
         self.addhandler("quit", self._on_quit)
         self.addhandler("part", self._on_part)
@@ -60,7 +61,7 @@ class IRCClient:
         self.addhandler("nick", self._on_nick)
 
     def configure(self, server="", port=6667, nick="nothing", ident="nothing",
-                gecos="-", ssl=False, password=None msgdelay=0.5, reconnects=10):
+                gecos="-", ssl=False, password=None, msgdelay=0.5, reconnects=10):
         self.server = server
         self.port = port
         self.nickname = nick
@@ -68,6 +69,7 @@ class IRCClient:
         self.gecos = gecos
         self.ssl = ssl
         self.msgdelay = msgdelay
+        self.password = password
         self.imayreconnect = True
         
     def connect(self):
@@ -331,7 +333,7 @@ class IRCClient:
         self.send("QUIT :{0}".format(reason), True)
     
     def pass_(self, password):
-        self.send("PASS :{0}".format(password), True)
+        self.send("PASS {0}".format(password), True)
 
     def pong(self, param):
         self.send("PONG :{0}".format(param))
