@@ -13,6 +13,7 @@ logging.basicConfig()
 config = json.load(open("config.json"))
 
 ircs = {} # IRC connections
+baks = {} # Backend connections
 
 class NetworkThing(object):
     def __init__(self, sid, othernets, config):
@@ -43,6 +44,11 @@ class NetworkThing(object):
                 # TODO: Check the email against blacklists, etc
                 # TODO: Check the network against blacklists too
                 # TODO: Check for banned/rejected users
+                
+                if ":" in ev.splitd[2]:
+                    cli.privmsg(ev.target, "Please do not introduce the port in the network address")
+                    return
+                
                 try:
                     PendingRequest.get(PendingRequest.nick == ev.source or PendingRequest.host == ev.source2.host or PendingRequest.user == ev.splitd[1])
                     cli.privmsg(ev.target, "You already have a pending network request!")
@@ -54,11 +60,57 @@ class NetworkThing(object):
                 req.save()
                 cli.privmsg(ev.target, "Your request was sent to the admins and will be reviewed shortly. You'll receive the bouncer details by email")
                 self.nets['_ADMIN_NETWORK_'].privmsg(self.config['servers'][self.nets['_ADMIN_NETWORK_'].sid]['admin-channel'], "NEW REQUEST: {0} at {1} (Network: {2}; email: {3}). ID: {4} (!accept {4}; !reject {4} reason)".format(ev.source, cli.sid, ev.splitd[2], ev.splitd[3], req.id))
+
+                try:
+                    NetworkAddr.get(NetworkAddr.address == ev.splitd[2])
+                except:
+                    self.nets['_ADMIN_NETWORK_'].privmsg(self.config['servers'][self.nets['_ADMIN_NETWORK_'].sid]['admin-channel'], "INFO: Unknown network. Add it with \002!aliasnet <address> <name>\002, and if the network does not exist: \002!addnet <name> <address> <port (ssl if possible)>")
+            
+            # TODO: !report command to report bouncers
+            # TODO: !resetpass command to reset the user's password
+
+        elif ev.target.lower() == self.myconf['admin-channel']:
+            if ev.splitd[0] == "!aliasnet":
+                if len(ev.splitd[0]) < 2:
+                    cli.privmsg(ev.target, "Usage: !aliasnet <address> <network>")
+                    return
+                
+                try:
+                    Network.get(Network.name == ev.splitd[2])
+                except:
+                    cli.privmsg(ev.target, "That network does not exist! Add it with !addnet <name> <address> <port>")
+                    return
+                
+                net = NetworkAddr.create(address=ev.splitd[1], name=ev.splitd[2])
+                net.save()
+                cli.privmsg(ev.target, "Address saved.")
+            elif ev.splitd[0] == "!addnet":
+                if len(ev.splitd[0]) < 3:
+                    cli.privmsg(ev.target, "Usage: !addnet <name> <address> <port>")
+                    return
+                net = Network.create(name=ev.splitd[1], address=ev.splitd[2], port=ev.splitd[3])
+                net.save()
+                cli.privmsg(ev.target, "Network saved.")
             
             # TODO: !accept command to accept bouncers
             # TODO: !reject command to reject bouncers
-            # TODO: !report command to report bouncers
-            # TODO: !resetpass command to reset the user's password
+
+class BackendThing(object):
+    def __init__(self, irc, sid):
+        self.irc = irc
+        self.sid = sid
+    
+    def adduser(self, username, password):
+        self.irc.privmsg("*controlpanel", "adduser {0} {1}".format(username, password))
+        self.irc.privmsg("*controlpanel", "set quitmsg {0} Hira bouncer service: http://bouncers.pw".format(username))
+        self.irc.privmsg("*controlpanel", "set RealName {0} Hira bouncer service: http://bouncers.pw".format(username))
+        self.irc.privmsg("*controlpanel", "set maxnetworks {0} 0".format(username))
+    
+    def addnetwork(self, username, network, server):
+        self.irc.privmsg("*controlpanel", "addnetwork {0} {1}".format(username, network))
+        self.irc.privmsg("*controlpanel", "addserver {0} {1} {2}".format(username, network, server))
+        self.irc.privmsg("*controlpanel", "addchan {0} {1} #HiraBNC".format(username, network, server))
+    
 database = peewee.SqliteDatabase('bouncers.db')
 database.connect()
 
@@ -78,14 +130,22 @@ class PendingRequest(BaseModel): # Pending request model
     network = peewee.CharField() # The network the bouncer will connect to
     on = peewee.CharField() # On which network it was requested
 
+class Network(BaseModel): # Known networks
+    name = peewee.CharField() # network name
+    address = peewee.CharField() # address
+    port = peewee.CharField() # port
+
+class NetworkAddr(BaseModel): # known addresses from networks
+    name = peewee.CharField()
+    address = peewee.CharField()
+
 PendingRequest.create_table(True)
 User.create_table(True)
-
-# TODO: Connect to the backends (znc servers as admin) to manage users
+Network.create_table(True)
+NetworkAddr.create_table(True)
 
 # connect to all the servers
 for i in config['servers']:
-    print(i)
     ircs[i] = client.IRCClient(i)
     ircs[i].configure( server = config['servers'][i]['server'],
                     port = config['servers'][i]['port'],
@@ -94,6 +154,16 @@ for i in config['servers']:
         ircs['_ADMIN_NETWORK_'] = ircs[i]
     # Launch the network object
     NetworkThing(i, ircs, config)
+
+for i in config['backends']:
+    if config['backends'][i]['type'] == "znc":
+        temp = client.IRCClient("backend-" + i)
+        temp.configure( server = config['backends'][i]['server'],
+                    port = config['backends'][i]['port'],
+                    password = config['backends'][i]['password'])
+        temp.connect()
+        baks[i] = BackendThing(temp, i)
+        
 
 while True:
     time.sleep(1)
