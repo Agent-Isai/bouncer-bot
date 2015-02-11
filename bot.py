@@ -61,6 +61,13 @@ class NetworkThing(object):
                     return
                 
                 try:
+                    User.get(User.email == ev.splitd[3] or User.nick == ev.splitd[1])
+                    cli.privmsg(ev.target, "You already have an active bouncer. To request an additional network use !reqnet")
+                    return
+                except:
+                    pass
+                
+                try:
                     PendingRequest.get(PendingRequest.nick == ev.source or PendingRequest.host == ev.source2.host or PendingRequest.user == ev.splitd[1])
                     cli.privmsg(ev.target, "You already have a pending network request!")
                     return
