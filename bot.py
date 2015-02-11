@@ -5,6 +5,9 @@ from peewee import peewee
 import time
 import json
 import logging
+import smtplib
+from email.mime.text import MIMEText
+
 
 logging.getLogger(None).setLevel(logging.DEBUG)
 logging.basicConfig()
@@ -59,7 +62,7 @@ class NetworkThing(object):
                 req = PendingRequest.create(nick=ev.source, host=ev.source2.host, user=ev.splitd[1], email=ev.splitd[3], network=ev.splitd[2], on=cli.sid)
                 req.save()
                 cli.privmsg(ev.target, "Your request was sent to the admins and will be reviewed shortly. You'll receive the bouncer details by email")
-                self.nets['_ADMIN_NETWORK_'].privmsg(self.config['servers'][self.nets['_ADMIN_NETWORK_'].sid]['admin-channel'], "NEW REQUEST: {0} at {1} (Network: {2}; email: {3}). ID: {4} (!accept {4}; !reject {4} reason)".format(ev.source, cli.sid, ev.splitd[2], ev.splitd[3], req.id))
+                self.nets['_ADMIN_NETWORK_'].privmsg(self.config['servers'][self.nets['_ADMIN_NETWORK_'].sid]['admin-channel'], "NEW REQUEST: {0} at {1} (Network: {2}; email: {3}). ID: {4} (!accept {4} [server]; !reject {4} reason)".format(ev.source, cli.sid, ev.splitd[2], ev.splitd[3], req.id))
 
                 try:
                     NetworkAddr.get(NetworkAddr.address == ev.splitd[2])
@@ -91,7 +94,28 @@ class NetworkThing(object):
                 net = Network.create(name=ev.splitd[1], address=ev.splitd[2], port=ev.splitd[3])
                 net.save()
                 cli.privmsg(ev.target, "Network saved.")
-            
+            elif ev.splitd[0] == "!reject":
+                if len(ev.splitd[0]) < 2:
+                    cli.privmsg(ev.target, "Usage: !reject <id> <reason>")
+                    return
+                try:
+                    req = PendingRequest.get(PendingRequest.id == int(ev.splitd[1]))
+                except:
+                    cli.privmsg(ev.target, "Request not found")
+                    return
+                    
+                text = "Dear {0},\n\nYour bouncer request for {1} was rejected with the following reason:\n\n{2}\n\n -- The Hira bouncer service staff".format(req.user, req.network, ev.splitd[2])
+                
+                msg = MIMEText(text)
+                msg['Subject'] = "Hira bouncer service"
+                msg['From'] = "noreply@bouncers.pw"
+                msg['To'] = req.email
+                s = smtplib.SMTP('localhost')
+                s.send_message(msg)
+                s.quit()
+                req.delete_instance()
+                cli.privmsg(ev.source, "Request rejected.")
+
             # TODO: !accept command to accept bouncers
             # TODO: !reject command to reject bouncers
 
