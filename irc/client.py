@@ -95,7 +95,7 @@ class IRCClient:
         _thread.start_new_thread(self._process_queue, ())
 
         _thread.start_new_thread(self._process_forever, ())
-
+        self.logger.info("Connected!")
         self._fire_event(Event("connect", None, None))
         time.sleep(2) # v3 ftw
         self.user(self.ident, self.gecos)
