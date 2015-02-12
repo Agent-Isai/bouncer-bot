@@ -415,7 +415,7 @@ class IRCClient:
         # o_O IT IS A WHO!!
         # THE FOOKING SERVER DOESN'T SUPPORT WHOX >:O
         # Let's send a whois to get the goddamn account name
-        self.whois(event.arguments[4])
+        #self.whois(event.arguments[4])
         self.channels[event.arguments[0]].addUser(event)
 
     def _on_whoisaccount(self, myself, event):
