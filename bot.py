@@ -120,7 +120,7 @@ class NetworkThing(object):
                     cli.privmsg(ev.target, "Request not found")
                     return
                     
-                text = "Dear {0},\n\nYour bouncer request for {1} was rejected with the following reason:\n\n{2}\n\n -- The Hira bouncer service staff".format(req.user, req.network, ev.splitd[2])
+                text = "Dear {0},\n\nYour bouncer request for {1} was rejected with the following reason:\n\n{2}\n\n -- The Hira bouncer service staff".format(req.user, req.network, " ".join(ev.splitd[:2]))
                 
                 msg = MIMEText(text)
                 msg['Subject'] = "Hira bouncer service"
@@ -171,8 +171,34 @@ class NetworkThing(object):
                 self.nets[req.on].privmsg(self.config['servers'][req.on]['request-channel'], req.nick + "'s request was approved. Please check your email for more information")
                 req.delete_instance()
                 cli.privmsg(ev.target, "Request approved")
-
-            # TODO: !deluser to delete a user
+            elif ev.splitd[0] == "!deluser":
+                if len(ev.splitd) == 1:
+                    cli.privmsg(ev.target, "Usage: !deluser <user> [reason]")
+                    return
+                
+                try:
+                    user = User.get(User.nick == ev.splitd[1])
+                except:
+                    cli.privmsg(ev.target, "That user does not exist")
+                    return
+                
+                text = "Dear {0},\n\nYour bouncer was dropped with the following reason:\n\n{1}\n\n -- The Hira bouncer service staff".format(req.user, " ".join(ev.splitd[2:]))
+                msg = MIMEText(text)
+                msg['Subject'] = "Hira bouncer service"
+                msg['From'] = "noreply@bouncers.pw"
+                msg['To'] = req.email
+                s = smtplib.SMTP('localhost')
+                s.send_message(msg)
+                s.quit()
+                
+                baks[user.server].deluser(user.nick)
+                
+                usernets = UserNetworks.select().where(UserNetworks.nick == user.nick)
+                for i in usernets:
+                    i.delete_instance()
+                user.delete_instance()
+                cli.privmsg(ev.target, "User deleted")
+                
 class BackendThing(object):
     def __init__(self, irc, sid):
         self.irc = irc
@@ -184,10 +210,16 @@ class BackendThing(object):
         self.irc.privmsg("*controlpanel", "set RealName {0} Hira bouncer service: http://bouncers.pw".format(username))
         self.irc.privmsg("*controlpanel", "set maxnetworks {0} 0".format(username))
     
+    def deluser(self, username):
+        self.irc.privmsg("*controlpanel", "deluser {0}".format(username))
+    
     def addnetwork(self, username, network, server):
         self.irc.privmsg("*controlpanel", "addnetwork {0} {1}".format(username, network))
         self.irc.privmsg("*controlpanel", "addserver {0} {1} {2}".format(username, network, server))
         self.irc.privmsg("*controlpanel", "addchan {0} {1} #AwesomeBNC".format(username, network, server))
+    
+    
+    
     
 database = peewee.SqliteDatabase('bouncers.db')
 database.connect()
@@ -199,11 +231,12 @@ class BaseModel(peewee.Model):
 class User(BaseModel): # ZNC user object or something like that
     nick = peewee.CharField() # username
     email = peewee.CharField() # email
+    server = peewee.CharField() # znc server
+
 
 class UserNetworks(BaseModel): # User<->network object
     nick = peewee.CharField() # username
     network = peewee.CharField() # network name
-
     
 class PendingRequest(BaseModel): # Pending request model
     nick = peewee.CharField() # User's nick
