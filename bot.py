@@ -43,7 +43,7 @@ class NetworkThing(object):
     def msg(self, cli, ev):
         if ev.target.lower() == self.myconf['request-channel']:
             if ev.splitd[0] == "!help":
-                cli.privmsg(ev.target, "!request <username> <irc.server> <email>")
+                cli.privmsg(ev.target, "Use !request <username <irc sevrer address> <vaild email> or to add a network use !reqnet ")
             elif ev.splitd[0] == "!request":
                 if len(ev.splitd) < 4:
                     cli.privmsg(ev.target, "Usage: !request <username> <irc.server> <email>")
@@ -53,7 +53,7 @@ class NetworkThing(object):
                 # TODO: Check the network against blacklists too
                 # TODO: Check for banned/rejected users
                 if not _EMAIL_REGEX.match(ev.splitd[3]):
-                    cli.privmsg(ev.target, "Invalid email address")
+                    cli.privmsg(ev.target, "Invalid email address!")
                     return
                 
                 if ":" in ev.splitd[2]:
@@ -120,7 +120,7 @@ class NetworkThing(object):
                     cli.privmsg(ev.target, "Request not found")
                     return
                     
-                text = "Dear {0},\n\nYour bouncer request for {1} was rejected with the following reason:\n\n{2}\n\n -- The Hira bouncer service staff".format(req.user, req.network, " ".join(ev.splitd[:2]))
+                text = "Dear {0},\n\nYour bouncer request for {1} was rejected with the following reason:\n\n{2}\n\n -- Sorry for any inconvinence! - AwesomeBNC Staff!".format(req.user, req.network, " ".join(ev.splitd[:2]))
                 
                 msg = MIMEText(text)
                 msg['Subject'] = "Hira bouncer service"
@@ -158,9 +158,9 @@ class NetworkThing(object):
                 password = ''.join(random.choice(string.ascii_lowercase) for i in range(12))
                 baks[server].adduser(req.user, password)
                 baks[server].addnetwork(req.user, netw.name, netw.address + " " + netw.port)
-                text = "Dear {0},\n\nYour bouncer request for {1} was approved!\nCredentials:\n - Server: {2}\n - Port: 1337 (+1338 for ssl)\n - User: {3}\n - Password: {4}\n\n -- The Hira bouncer service staff".format(req.user, req.network, server + ".bouncers.pw", req.user, password)
+                text = "Dear {0},\n\nYour bouncer request for {1} was approved!\nCredentials:\n - Server: {2}\n - Port: 1337 (+1338 for ssl)\n - User: {3}\n - Password: {4}\n\n -- Sorry for any inconvinence! - AwesomeBNC Staff".format(req.user, req.network, server + ".bouncers.pw", req.user, password)
                 msg = MIMEText(text)
-                msg['Subject'] = "Hira bouncer service"
+                msg['Subject'] = "Awesome bouncer service"
                 msg['From'] = "noreply@bouncers.pw"
                 msg['To'] = req.email
                 s = smtplib.SMTP('localhost')
@@ -182,7 +182,7 @@ class NetworkThing(object):
                     cli.privmsg(ev.target, "That user does not exist")
                     return
                 
-                text = "Dear {0},\n\nYour bouncer was dropped with the following reason:\n\n{1}\n\n -- The Hira bouncer service staff".format(req.user, " ".join(ev.splitd[2:]))
+                text = "Dear {0},\n\nYour bouncer was dropped with the following reason:\n\n{1}\n\n -- Sorry for any inconvinence! - AwesomeBNC Staff".format(req.user, " ".join(ev.splitd[2:]))
                 msg = MIMEText(text)
                 msg['Subject'] = "Hira bouncer service"
                 msg['From'] = "noreply@bouncers.pw"
@@ -206,8 +206,8 @@ class BackendThing(object):
     
     def adduser(self, username, password):
         self.irc.privmsg("*controlpanel", "adduser {0} {1}".format(username, password))
-        self.irc.privmsg("*controlpanel", "set quitmsg {0} Hira bouncer service: http://bouncers.pw".format(username))
-        self.irc.privmsg("*controlpanel", "set RealName {0} Hira bouncer service: http://bouncers.pw".format(username))
+        self.irc.privmsg("*controlpanel", "set quitmsg {0} Awesome bouncer service: http://bouncers.pw".format(username))
+        self.irc.privmsg("*controlpanel", "set RealName {0} Awesome bouncer service: http://bouncers.pw".format(username))
         self.irc.privmsg("*controlpanel", "set maxnetworks {0} 0".format(username))
     
     def deluser(self, username):
