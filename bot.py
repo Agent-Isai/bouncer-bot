@@ -166,7 +166,7 @@ class NetworkThing(object):
                 s = smtplib.SMTP('localhost')
                 s.send_message(msg)
                 s.quit()
-                User.create(email = req.email, nick = req.user)
+                User.create(email = req.email, nick = req.user, server=server)
                 UserNetworks.create(nick = req.user, network = netw.name)
                 self.nets[req.on].privmsg(self.config['servers'][req.on]['request-channel'], req.nick + "'s request was approved. Please check your email for more information")
                 req.delete_instance()
