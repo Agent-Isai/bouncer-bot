@@ -43,7 +43,7 @@ class NetworkThing(object):
     def msg(self, cli, ev):
         if ev.target.lower() == self.myconf['request-channel']:
             if ev.splitd[0] == "!help":
-                cli.privmsg(ev.target, "Use !request <username <irc sevrer address> <vaild email> or to add a network use !reqnet ")
+                cli.privmsg(ev.target, "Use !request <username> <irc server address> <vaild email> or to add a network use !reqnet ")
             elif ev.splitd[0] == "!request":
                 if len(ev.splitd) < 4:
                     cli.privmsg(ev.target, "Usage: !request <username> <irc.server> <email>")
