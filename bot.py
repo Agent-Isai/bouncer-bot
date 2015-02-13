@@ -83,7 +83,8 @@ class NetworkThing(object):
                     NetworkAddr.get(NetworkAddr.address == ev.splitd[2])
                 except:
                     self.nets['_ADMIN_NETWORK_'].privmsg(self.config['servers'][self.nets['_ADMIN_NETWORK_'].sid]['admin-channel'], "INFO: Unknown network. Add it with \002!aliasnet <address> <name>\002, and if the network does not exist: \002!addnet <name> <address> <port (ssl if possible)>")
-            
+            elif ev.splitd[0] == "!reqnet":
+                cli.privmsg(ev.target, "SOON™")
             # TODO: !report command to report bouncers
             # TODO: !reqnet to request another network
             # TODO: !resetpass command to reset the user's password
@@ -158,9 +159,9 @@ class NetworkThing(object):
                 password = ''.join(random.choice(string.ascii_lowercase) for i in range(12))
                 baks[server].adduser(req.user, password)
                 baks[server].addnetwork(req.user, netw.name, netw.address + " " + netw.port)
-                text = "Dear {0},\n\nYour bouncer request for {1} was approved!\nCredentials:\n - Server: {2}\n - Port: 1337 (+1338 for ssl)\n - User: {3}\n - Password: {4}\n\n -- Sorry for any inconvinence! - AwesomeBNC Staff".format(req.user, req.network, server + ".bouncers.pw", req.user, password)
+                text = "Dear {0},\n\nYour bouncer request for {1} was approved!\nCredentials:\n - Server: {2}\n - Port: 1337 (+1338 for ssl)\n - User: {3}\n - Password: {4}\n\n -- AwesomeBNC Staff".format(req.user, req.network, server + ".bouncers.pw", req.user, password)
                 msg = MIMEText(text)
-                msg['Subject'] = "Awesome bouncer service"
+                msg['Subject'] = "Hira bouncer service"
                 msg['From'] = "noreply@bouncers.pw"
                 msg['To'] = req.email
                 s = smtplib.SMTP('localhost')
