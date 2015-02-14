@@ -200,6 +200,28 @@ class NetworkThing(object):
                     i.delete_instance()
                 user.delete_instance()
                 cli.privmsg(ev.target, "User deleted")
+            elif ev.splitd[0] == "!relay":
+                if len(ev.splitd) < 3:
+                    cli.privmsg(ev.target, "Usage: !relay <network> <message..>")
+                    return
+                
+                try:
+                    self.nets[ev.splitd[1]]
+                except:
+                    cli.privmsg(ev.target, "Couldn't find that network..")
+                    return
+                
+                self.nets[ev.splitd[1]].privmsg(self.config['servers'][ev.splitd[1]]['request-channel'], "(from \002{0}\002): {1}".format(ev.source, " ".join(ev.splitd[2:])))
+            elif ev.splitd[0] == "!global":
+                if len(ev.splitd) == 1:
+                    cli.privmsg(ev.target, "Usage: !global <message..>")
+                    return
+                
+                for i in self.nets:
+                    if i == "_ADMIN_NETWORK_":
+                        continue
+                    
+                    self.nets[i].privmsg(self.config['servers'][i]['request-channel'], "[\002Global message\002] {0}".format(" ".join(ev.splitd[1:])))
                 
 class BackendThing(object):
     def __init__(self, irc, sid):
