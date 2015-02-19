@@ -184,7 +184,7 @@ class NetworkThing(object):
                     cli.privmsg(ev.target, "That user does not exist")
                     return
                 
-                text = "Dear {0},\n\nYour bouncer was dropped with the following reason:\n\n{1}\n\n -- Sorry for any inconvinence! - AwesomeBNC Staff".format(req.user, " ".join(ev.splitd[2:]))
+                text = "Dear {0},\n\nYour bouncer was dropped with the following reason:\n\n{1}\n\n -- Sorry for any inconvinence! - AwesomeBNC Staff".format(user.nick, " ".join(ev.splitd[2:]))
                 msg = MIMEText(text)
                 msg['Subject'] = "Hira bouncer service"
                 msg['From'] = "noreply@bouncers.pw"
