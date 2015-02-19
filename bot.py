@@ -188,7 +188,7 @@ class NetworkThing(object):
                 msg = MIMEText(text)
                 msg['Subject'] = "Hira bouncer service"
                 msg['From'] = "noreply@bouncers.pw"
-                msg['To'] = req.email
+                msg['To'] = user.email
                 s = smtplib.SMTP('localhost')
                 s.send_message(msg)
                 s.quit()
