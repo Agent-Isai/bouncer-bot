@@ -91,7 +91,7 @@ class IRCClient:
 
         self.connected = True
 
-        _thread.start_new_thread(self._cookie_monster, ())
+        #_thread.start_new_thread(self._cookie_monster, ())
         _thread.start_new_thread(self._process_queue, ())
 
         _thread.start_new_thread(self._process_forever, ())
