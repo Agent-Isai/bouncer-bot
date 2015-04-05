@@ -235,7 +235,7 @@ class BackendThing(object):
         self.irc.privmsg("*controlpanel", "set maxnetworks {0} 0".format(username))
     
     def deluser(self, username):
-        self.irc.privmsg("*controlpanel", "set quitmsg {0} ACCOUNT FUCKING TERMINATED".format(username))
+        self.irc.privmsg("*controlpanel", "set quitmsg {0} AgentBNC - (https://BNC agentisai.tk) (Account wrecked)".format(username))
         self.irc.privmsg("*controlpanel", "deluser {0}".format(username))
     
     def addnetwork(self, username, network, server):
